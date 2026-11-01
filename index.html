@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Controle de Cobranças</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#15803d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cobranças">
+<style>
+:root{
+  --bg:#f4f6f8;--card:#fff;--tx:#1b2430;--mut:#6b7686;--bd:#e3e8ee;--pri:#15803d;--pri-d:#116631;
+  --blue:#2563eb;--green:#16a34a;--amber:#d97706;--red:#dc2626;--soft:#f0f3f6;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f1419;--card:#18202a;--tx:#e8edf3;--mut:#93a1b3;--bd:#2a3542;--pri:#22c55e;--pri-d:#16a34a;--soft:#202b37;
+  --blue:#60a5fa;--green:#4ade80;--amber:#fbbf24;--red:#f87171}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:5}
+.bar{max-width:1100px;margin:auto;padding:10px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{font-weight:700;font-size:17px}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:none;border:0;padding:8px 12px;border-radius:8px;font:inherit;color:var(--mut);cursor:pointer;font-weight:600}
+nav button.on{background:var(--soft);color:var(--tx)}
+#sync{margin-left:auto;font-size:12.5px;color:var(--mut)}
+main{max-width:1100px;margin:auto;padding:16px}
+.view{display:none}.view.on{display:block}
+h2{margin:0 0 12px;font-size:18px}
+h3{margin:0 0 10px;font-size:15px}
+.grid{display:grid;gap:12px}
+.cards{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.two{grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px 16px}
+.stat .l{color:var(--mut);font-size:13px}
+.stat .v{font-size:24px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.stat .s{color:var(--mut);font-size:12.5px}
+canvas{width:100%;height:260px;display:block}
+button.b,a.b{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:7px 12px;border-radius:8px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none;font-size:14px}
+button.b:hover,a.b:hover{background:var(--soft)}
+.b.pri{background:var(--pri);border-color:var(--pri);color:#fff}.b.pri:hover{background:var(--pri-d)}
+.b.wa{background:#25d366;border-color:#25d366;color:#052e16}.b.wa:hover{background:#1fb858}
+.b.dng{color:var(--red)}
+.b.sm{padding:5px 9px;font-size:13px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.tools input[type=search]{flex:1;min-width:160px}
+input,select,textarea{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;width:100%}
+textarea{resize:vertical}
+label{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}
+label small{font-weight:400;color:var(--mut)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--bd);background:var(--card);padding:5px 11px;border-radius:99px;cursor:pointer;font-size:13px;font-weight:600;color:var(--mut)}
+.chip.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.row{display:flex;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--bd);flex-wrap:wrap}
+.row:last-child{border-bottom:0}
+.list{background:var(--card);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+.row .who{flex:1 1 200px;min-width:0}
+.row .who b{display:block;overflow:hidden;text-overflow:ellipsis}
+.row .who span{color:var(--mut);font-size:12.5px}
+.row .amt{text-align:right;min-width:110px;font-variant-numeric:tabular-nums}
+.row .amt span{display:block;color:var(--mut);font-size:12.5px}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700}
+.bd-atrasado{background:#fee2e2;color:#991b1b}.bd-hoje{background:#fef3c7;color:#92400e}
+.bd-emdia{background:#dcfce7;color:#166534}.bd-quitado{background:#e5e7eb;color:#374151}
+@media (prefers-color-scheme:dark){
+ .bd-atrasado{background:#4c1d1d;color:#fca5a5}.bd-hoje{background:#4a3410;color:#fcd34d}
+ .bd-emdia{background:#14391f;color:#86efac}.bd-quitado{background:#2b3440;color:#cbd5e1}}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;border-bottom:1px solid var(--bd);text-align:left}
+th{color:var(--mut);font-size:12.5px;font-weight:600}
+td.r,th.r{text-align:right}
+.empty{padding:28px;text-align:center;color:var(--mut)}
+dialog{border:1px solid var(--bd);border-radius:14px;padding:0;background:var(--card);color:var(--tx);width:min(480px,94vw);max-height:92vh}
+dialog::backdrop{background:#0008}
+dialog form,dialog .in{padding:18px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f2>div>label:first-child{margin-top:10px}
+.foot{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.hint{color:var(--mut);font-size:12.5px;margin-top:4px}
+details{margin-top:10px}summary{cursor:pointer;font-weight:600}
+code{background:var(--soft);padding:1px 5px;border-radius:5px;font-size:12.5px}
+.warn{background:#fef3c7;color:#92400e;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:12px}
+ol{padding-left:20px;margin:8px 0}
+.cfg{max-width:760px}
+.cfg .card{margin-bottom:12px}
+.warn b{font-weight:700}
+.warn .b{margin:8px 6px 0 0}
+.warn.bad{background:#fee2e2;color:#991b1b}
+.pbar{height:6px;background:var(--soft);border-radius:9px;overflow:hidden;margin:6px 0 12px}
+.pbar i{display:block;height:100%;background:var(--pri)}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:12px 0}
+.sum div{background:var(--soft);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--mut)}
+.sum b{display:block;font-size:15px;color:var(--tx)}
+.loan{border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin:8px 0}
+.loan .top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.qlist{margin-top:12px;border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+.qlist div{display:flex;gap:8px;padding:8px 10px;border-bottom:1px solid var(--bd);cursor:pointer;font-size:14px}
+.qlist div:last-child{border-bottom:0}.qlist .cur{font-weight:700;background:var(--soft)}
+.tag{font-size:11.5px;background:var(--soft);padding:1px 7px;border-radius:99px;color:var(--mut);margin-left:6px;font-weight:600}
+dialog.wide{width:min(620px,94vw)}
+.who b[data-act]{cursor:pointer}
+nav button i{display:none;font-style:normal}
+html{-webkit-text-size-adjust:100%}
+button,a,.chip{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+@media (max-width:560px){.f2{grid-template-columns:1fr}}
+@media (max-width:640px){
+  body{padding-bottom:calc(70px + env(safe-area-inset-bottom))}
+  .bar{flex-wrap:nowrap;padding:10px 14px;justify-content:space-between}
+  #sync{margin-left:0;text-align:right;font-size:11.5px}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;
+      background:var(--card);border-top:1px solid var(--bd);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+  nav button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;font-size:11.5px}
+  nav button i{display:block;font-size:20px;line-height:1.2}
+  main{padding:12px}
+  input,select,textarea{font-size:16px;min-height:44px}
+  input[type=checkbox]{min-height:0;width:20px!important;height:20px}
+  .b{min-height:42px;justify-content:center}.b.sm{min-height:38px}
+  .cards{grid-template-columns:1fr 1fr;gap:10px}
+  .stat{padding:12px}.stat .v{font-size:19px}.stat .l,.stat .s{font-size:12px}
+  .two{grid-template-columns:minmax(0,1fr)}
+  .tools .b.pri{flex:1 1 100%}
+  .chips{flex-wrap:nowrap;overflow-x:auto;margin-left:-12px;margin-right:-12px;padding:0 12px 4px;scrollbar-width:none}
+  .chip{flex:none;white-space:nowrap;padding:7px 13px}
+  .row{gap:8px 12px;padding:12px}
+  .row .who{flex:1 1 100%}
+  .row .amt{flex:1;text-align:right;min-width:0}
+  .acts{width:100%}.acts .b{flex:1}
+  #hfilter{max-width:none}
+  #histlist{overflow:visible}
+  #histlist tr:first-child{display:none}
+  #histlist tr{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 12px;border-bottom:1px solid var(--bd)}
+  #histlist td{border:0;padding:0;text-align:left}
+  #histlist td:nth-child(1){grid-area:2/1;color:var(--mut);font-size:12.5px}
+  #histlist td:nth-child(2){grid-area:1/1;font-weight:600}
+  #histlist td:nth-child(3){grid-area:1/2;text-align:right}
+  #histlist td:nth-child(4){grid-area:3/1/4/3;color:var(--mut);font-size:12.5px}
+  #histlist td:nth-child(4):empty{display:none}
+  #histlist td:nth-child(5){grid-area:2/2}
+  dialog,dialog.wide{width:100%;max-width:100%;margin:auto 0 0;border-radius:18px 18px 0 0;max-height:94dvh;overflow:auto;padding-bottom:env(safe-area-inset-bottom)}
+  .foot .b{flex:1}
+  #p-all{flex:1 1 100%;order:3;margin-right:0!important}
+  #gscode{font-size:12px}
+}
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <div class="logo">💰 Cobranças</div>
+  <nav id="nav">
+    <button data-v="dash" class="on"><i>📊</i>Dashboard</button>
+    <button data-v="dev"><i>👥</i>Devedores</button>
+    <button data-v="hist"><i>🧾</i>Histórico</button>
+    <button data-v="cfg"><i>⚙️</i>Config.</button>
+  </nav>
+  <div id="sync">Salvo neste navegador</div>
+</div></header>
+
+<main>
+<!-- DASHBOARD -->
+<section id="v-dash" class="view on">
+  <div id="banner"></div>
+  <div class="grid cards" id="cards"></div>
+  <div class="grid two" style="margin-top:12px">
+    <div class="card"><h3>Emprestado × Recebido × Falta receber</h3><canvas id="ch1"></canvas></div>
+    <div class="card"><h3>Projeção de recebimentos por mês</h3><canvas id="ch2"></canvas></div>
+  </div>
+  <div class="grid two" style="margin-top:12px">
+    <div class="card"><h3>Tabela da projeção</h3><div id="proj"></div></div>
+    <div class="card" style="padding:0"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 16px 8px"><h3 style="margin:0">Cobrar agora</h3><span id="dueBtn"></span></div><div id="due"></div></div>
+  </div>
+</section>
+
+<!-- DEVEDORES -->
+<section id="v-dev" class="view">
+  <div class="tools">
+    <input type="search" id="q" placeholder="Buscar por nome ou WhatsApp…">
+    <button class="b pri" data-act="new">+ Novo devedor</button>
+    <button class="b" data-act="queue">📲 Fila de cobrança</button>
+  </div>
+  <div class="chips" id="chips" style="margin-bottom:12px"></div>
+  <div class="list" id="devlist"></div>
+</section>
+
+<!-- HISTÓRICO -->
+<section id="v-hist" class="view">
+  <div class="tools">
+    <select id="hfilter" style="max-width:260px"></select>
+    <div id="htotal" style="margin-left:auto;font-weight:700"></div>
+  </div>
+  <div class="card" style="padding:0;overflow:auto" id="histlist"></div>
+</section>
+
+<!-- CONFIG -->
+<section id="v-cfg" class="view"><div class="cfg">
+  <div class="card">
+    <h3>Chave Pix</h3>
+    <div class="f2">
+      <div><label>Tipo da chave</label>
+        <select id="c-pixTipo"><option>CPF</option><option>CNPJ</option><option>Telefone</option><option>E-mail</option><option>Aleatória</option></select></div>
+      <div><label>Chave Pix</label><input id="c-pix" placeholder="sua chave"></div>
+    </div>
+    <label>Nome do favorecido <small>(aparece na mensagem)</small></label><input id="c-recebedor">
+  </div>
+  <div class="card">
+    <h3>Mensagens de cobrança</h3>
+    <div class="hint">Variáveis: <code>{nome}</code> <code>{primeiro_nome}</code> <code>{valor}</code> (parcela) <code>{saldo}</code> <code>{vencimento}</code> <code>{dias_atraso}</code> <code>{pix}</code> <code>{pixTipo}</code> <code>{recebedor}</code></div>
+    <label>Mensagem no vencimento / lembrete</label><textarea id="c-msgVenc" rows="7"></textarea>
+    <label>Mensagem de atraso</label><textarea id="c-msgAtraso" rows="7"></textarea>
+    <div class="foot" style="justify-content:flex-start"><button class="b sm" data-act="resetmsg">Restaurar mensagens padrão</button></div>
+  </div>
+  <div class="card">
+    <h3>Sincronização com Google Sheets</h3>
+    <label>URL do Web App (Apps Script)</label><input id="c-sheetsUrl" placeholder="https://script.google.com/macros/s/…/exec">
+    <label>Senha/token <small>(opcional — a mesma definida no script)</small></label><input id="c-token">
+    <label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="c-auto" style="width:auto"> Enviar automaticamente a cada cadastro ou pagamento</label>
+    <div class="foot" style="justify-content:flex-start">
+      <button class="b pri" data-act="sync">Sincronizar agora</button>
+      <button class="b" data-act="restore">Restaurar da planilha</button>
+    </div>
+    <div class="hint" id="bkInfo" style="margin-top:10px"></div>
+    <div class="foot" style="justify-content:flex-start;margin-top:8px"><button class="b sm" data-act="copylink">🔗 Copiar link de acesso rápido (para o celular)</button></div>
+    <details><summary>Como configurar (5 minutos, uma vez só)</summary>
+      <ol>
+        <li>Crie uma planilha nova em <b>sheets.new</b>.</li>
+        <li>Menu <b>Extensões → Apps Script</b>. Apague o que estiver lá e cole o código abaixo.</li>
+        <li>Clique em <b>Implantar → Nova implantação → Tipo: App da Web</b>. Em “Executar como” escolha <b>Eu</b> e em “Quem pode acessar” escolha <b>Qualquer pessoa</b>. Autorize quando pedir.</li>
+        <li>Copie a <b>URL do app da Web</b> e cole no campo acima.</li>
+        <li>Clique em “Sincronizar agora”. As abas <b>Devedores</b> e <b>Pagamentos</b> serão criadas, mais uma aba <code>_backup</code> usada para restaurar.</li>
+      </ol>
+      <div class="hint">Se mudar o código depois, crie uma <b>nova implantação</b> para valer. Para usar senha, troque <code>const TOKEN = ''</code> no script e digite a mesma aqui.</div>
+      <textarea id="gscode" rows="14" readonly style="font-family:ui-monospace,Menlo,monospace;font-size:12px;margin-top:8px">const TOKEN = '';
+
+function doPost(e) {
+  try {
+    var d = JSON.parse(e.postData.contents);
+    if (TOKEN &amp;&amp; d.token !== TOKEN) return out({ok:false, erro:'token inválido'});
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    put(ss, 'Devedores', d.devedores);
+    put(ss, 'Pagamentos', d.pagamentos);
+    var chunks = [];
+    for (var i = 0; i &lt; d.backup.length; i += 40000) chunks.push([d.backup.substr(i, 40000)]);
+    var sh = ss.getSheetByName('_backup') || ss.insertSheet('_backup');
+    sh.clearContents();
+    sh.getRange(1, 1, chunks.length, 1).setValues(chunks);
+    return out({ok:true});
+  } catch (err) { return out({ok:false, erro:String(err)}); }
+}
+
+function doGet(e) {
+  if (TOKEN &amp;&amp; e.parameter.token !== TOKEN) return out({ok:false, erro:'token inválido'});
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('_backup');
+  if (!sh) return out({ok:false, erro:'ainda não há backup'});
+  var v = sh.getRange(1, 1, sh.getLastRow(), 1).getValues().map(function(r){return r[0];}).join('');
+  return out({ok:true, backup:v});
+}
+
+function put(ss, name, values) {
+  var sh = ss.getSheetByName(name) || ss.insertSheet(name);
+  sh.clearContents();
+  if (values &amp;&amp; values.length) sh.getRange(1, 1, values.length, values[0].length).setValues(values);
+  sh.setFrozenRows(1);
+}
+
+function out(o) {
+  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+}</textarea>
+      <div class="foot" style="justify-content:flex-start"><button class="b sm" data-act="copycode">Copiar código</button></div>
+    </details>
+  </div>
+  <div class="card">
+    <h3>Backup no computador</h3>
+    <div class="hint" style="margin:0 0 8px">Seus dados ficam salvos no navegador (localStorage). Se limpar os dados do navegador eles somem — por isso exporte de vez em quando ou use o Google Sheets.</div>
+    <div class="foot" style="justify-content:flex-start;margin-top:0">
+      <button class="b" data-act="export">Exportar arquivo .json</button>
+      <button class="b" data-act="import">Importar arquivo…</button>
+      <input type="file" id="file" accept=".json,application/json" hidden>
+    </div>
+  </div>
+</div></section>
+</main>
+
+<!-- Diálogo devedor -->
+<dialog id="dDev"><form id="fDev">
+  <h2 id="dDevT">Novo devedor</h2>
+  <input type="hidden" id="f-id">
+  <label>Nome</label><input id="f-nome" required list="names" autocomplete="off"><datalist id="names"></datalist>
+  <label>WhatsApp <small>(com DDD)</small></label><input id="f-whats" inputmode="tel" placeholder="(11) 91234-5678" required>
+  <div class="f2">
+    <div><label>Valor emprestado <small>(R$)</small></label><input id="f-emp" inputmode="decimal" placeholder="1.000,00"></div>
+    <div><label>Valor que ele me deve <small>(R$)</small></label><input id="f-saldo" inputmode="decimal" placeholder="1.200,00" required></div>
+    <div><label>Nº de parcelas <small>(opcional)</small></label><input id="f-np" inputmode="numeric" placeholder="4"></div>
+    <div><label>Valor da parcela <small>(R$)</small></label><input id="f-parc" inputmode="decimal" placeholder="300,00"></div>
+    <div><label>Prazo</label><select id="f-freq"><option value="semanal">Semanal</option><option value="quinzenal">Quinzenal</option><option value="mensal" selected>Mensal</option></select></div>
+    <div><label>Próximo vencimento</label><input type="date" id="f-venc" required></div>
+  </div>
+  <label>Observação <small>(opcional)</small></label><input id="f-obs">
+  <label id="f-allw" style="display:none;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="f-all" checked style="width:auto"> Aplicar nome e WhatsApp a todos os empréstimos desta pessoa</label>
+  <div class="foot"><button type="button" class="b" data-close>Cancelar</button><button class="b pri">Salvar</button></div>
+</form></dialog>
+
+<!-- Diálogo pagamento -->
+<dialog id="dPay"><form id="fPay">
+  <h2>Registrar pagamento</h2>
+  <div id="payInfo" class="hint" style="font-size:14px"></div>
+  <input type="hidden" id="p-id">
+  <div class="f2">
+    <div><label>Valor recebido <small>(R$)</small></label><input id="p-valor" inputmode="decimal" required></div>
+    <div><label>Data</label><input type="date" id="p-data" required></div>
+  </div>
+  <label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="p-adv" style="width:auto"> Parcela acertada — avançar o vencimento para <b id="p-next"></b></label>
+  <label>Observação <small>(opcional)</small></label><input id="p-obs">
+  <div class="foot">
+    <button type="button" class="b" id="p-all" style="margin-right:auto">Quitar tudo</button>
+    <button type="button" class="b" data-close>Cancelar</button><button class="b pri">Confirmar</button>
+  </div>
+</form></dialog>
+
+<!-- Diálogo cobrança -->
+<dialog id="dMsg"><div class="in">
+  <h2 id="m-t">Cobrar</h2>
+  <div id="m-warn"></div>
+  <label>Mensagem <small>(pode editar antes de enviar)</small></label>
+  <textarea id="m-text" rows="10"></textarea>
+  <div class="foot">
+    <button type="button" class="b" data-close>Fechar</button>
+    <button type="button" class="b" id="m-copy">Copiar</button>
+    <a class="b wa" id="m-wa" target="_blank" rel="noopener">Abrir no WhatsApp</a>
+  </div>
+</div></dialog>
+
+<!-- Diálogo renegociar -->
+<dialog id="dReneg"><form id="fReneg">
+  <h2>Renegociar</h2>
+  <div id="rInfo" class="hint" style="font-size:14px"></div>
+  <input type="hidden" id="r-id">
+  <div class="f2">
+    <div><label>Novo vencimento</label><input type="date" id="r-venc" required></div>
+    <div><label>Prazo</label><select id="r-freq"><option value="semanal">Semanal</option><option value="quinzenal">Quinzenal</option><option value="mensal">Mensal</option></select></div>
+    <div><label>Valor da parcela <small>(R$)</small></label><input id="r-parc" inputmode="decimal" required></div>
+    <div><label>Saldo devedor <small>(R$)</small></label><input id="r-saldo" inputmode="decimal" required></div>
+    <div><label>Parcelas restantes <small>(opcional)</small></label><input id="r-np" inputmode="numeric"></div>
+  </div>
+  <div class="hint">Para somar juros ou multa, aumente o saldo devedor. A mudança fica registrada na ficha da pessoa.</div>
+  <label>Motivo <small>(opcional)</small></label><input id="r-obs" placeholder="Ex.: pediu mais prazo">
+  <div class="foot"><button type="button" class="b" data-close>Cancelar</button><button class="b pri">Salvar</button></div>
+</form></dialog>
+
+<!-- Ficha da pessoa -->
+<dialog id="dPerson" class="wide"><div class="in" id="personBody"></div></dialog>
+
+<!-- Fila de cobrança -->
+<dialog id="dQueue" class="wide"><div class="in" id="queueBody"></div></dialog>
+
+<script>
+'use strict';
+const KEY = 'cobrancas_v1';
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const r2 = n => Math.round(n * 100) / 100;
+const sum = (a, f) => a.reduce((s, x) => s + f(x), 0);
+const brl = v => (v || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+const num = s => { s = String(s ?? '').trim().replace(/[R$\s]/g, ''); if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.'); return parseFloat(s) || 0; };
+const numStr = v => v ? String(r2(v)).replace('.', ',') : '';
+const pad = n => String(n).padStart(2, '0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const today = () => iso(new Date());
+const brDate = s => s ? s.split('-').reverse().join('/') : '';
+const diffDays = (a, b) => Math.round((parse(a) - parse(b)) / 864e5);
+const FREQ = {semanal:'Semanal', quinzenal:'Quinzenal', mensal:'Mensal'};
+const DEVICE_KEYS = ['sheetsUrl', 'token', 'auto', 'ultimoSync', 'pendente', 'ultimoBackupMs', 'revSheets', 'conflito'];
+
+const DEF_MSG_VENC = 'Olá {primeiro_nome}, tudo bem? 😊\nPassando para lembrar que sua parcela de {valor} vence em {vencimento}.\n\nChave Pix ({pixTipo}): {pix}\nFavorecido: {recebedor}\n\nDepois de pagar, me envie o comprovante, por favor. Obrigado!';
+const DEF_MSG_ATRASO = 'Olá {primeiro_nome}, tudo bem?\nSua parcela de {valor} venceu em {vencimento} e está com {dias_atraso} dia(s) de atraso. O saldo total é {saldo}.\n\nPara regularizar, o Pix é:\nChave ({pixTipo}): {pix}\nFavorecido: {recebedor}\n\nMe envie o comprovante assim que fizer o pagamento. Obrigado!';
+
+function defaults() {
+  return {devedores:[], pagamentos:[], cfg:{pixTipo:'Telefone', pix:'', recebedor:'', msgVenc:DEF_MSG_VENC, msgAtraso:DEF_MSG_ATRASO, sheetsUrl:'', token:'', auto:false, ultimoSync:'', pendente:false, ultimoBackupMs:0, revSheets:0, conflito:false}};
+}
+let S = (() => {
+  const d = defaults();
+  try { const j = JSON.parse(localStorage.getItem(KEY)); if (j) return {devedores:j.devedores || [], pagamentos:j.pagamentos || [], cfg:{...d.cfg, ...(j.cfg || {})}}; } catch (e) {}
+  return d;
+})();
+let ui = {view:'dash', filter:'todos', q:''};
+
+function persist() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { alert('Não foi possível salvar no navegador: ' + e.message); } }
+function save() { persist(); scheduleSync(); render(); }
+
+/* ---------- regras ---------- */
+function nextDue(d, from) {
+  const x = parse(from || d.venc);
+  if (d.freq === 'semanal') x.setDate(x.getDate() + 7);
+  else if (d.freq === 'quinzenal') x.setDate(x.getDate() + 15);
+  else {
+    const dia = d.diaMes || x.getDate();
+    x.setDate(1); x.setMonth(x.getMonth() + 1);
+    x.setDate(Math.min(dia, new Date(x.getFullYear(), x.getMonth() + 1, 0).getDate()));
+  }
+  return iso(x);
+}
+function status(d) {
+  if (d.saldo <= 0.005) return 'quitado';
+  const t = today();
+  return d.venc < t ? 'atrasado' : d.venc === t ? 'hoje' : 'emdia';
+}
+const parcelaDe = d => Math.min(d.parcela > 0 ? d.parcela : d.saldo, d.saldo);
+const pagoDe = id => S.pagamentos.filter(p => p.devId === id).reduce((a, p) => a + p.valor, 0);
+const BADGE = {atrasado:'Atrasado', hoje:'Vence hoje', emdia:'Em dia', quitado:'Quitado'};
+function badge(d) {
+  const st = status(d);
+  const t = st === 'atrasado' ? `Atrasado ${diffDays(today(), d.venc)}d` : BADGE[st];
+  return `<span class="badge bd-${st}">${t}</span>`;
+}
+const isDue = l => ['atrasado', 'hoje'].includes(status(l));
+const minVenc = a => a.map(l => l.venc).sort()[0];
+
+/* pessoas = empréstimos agrupados pelo WhatsApp */
+const pkey = w => { let n = String(w || '').replace(/\D/g, ''); if (n.length > 11 && n.startsWith('55')) n = n.slice(2); return n; };
+function pessoas() {
+  const m = new Map();
+  S.devedores.forEach(d => { const k = pkey(d.whats); if (!m.has(k)) m.set(k, {key:k, nome:d.nome, whats:d.whats, loans:[]}); m.get(k).loans.push(d); });
+  return m;
+}
+const loanLabel = d => brl(d.emprestado) + (d.criado ? ' · ' + brDate(d.criado) : '');
+function parcelaTxt(d) {
+  if (!d.parcelasTotal) return '';
+  if (status(d) === 'quitado') return `${d.parcelasTotal} parcelas pagas`;
+  return `parcela ${Math.min((d.pagas || 0) + 1, d.parcelasTotal)} de ${d.parcelasTotal}`;
+}
+function fimPrevisto(d) {
+  if (d.saldo <= 0.005) return '';
+  let due = d.venc, rest = d.saldo, n = 0, last = due;
+  const p = d.parcela > 0 ? d.parcela : rest;
+  while (rest > 0.005 && n++ < 600) { last = due; rest -= p; due = nextDue(d, due); }
+  return last;
+}
+function personStats(p) {
+  const ids = new Set(p.loans.map(l => l.id));
+  const pays = S.pagamentos.filter(x => ids.has(x.devId));
+  const late = pays.filter(x => x.avancou && x.vencAnterior && x.data > x.vencAnterior);
+  return {emp:sum(p.loans, l => l.emprestado || 0), pago:sum(pays, x => x.valor), saldo:sum(p.loans, l => l.saldo),
+    atrasos:late.length + p.loans.filter(l => status(l) === 'atrasado').length,
+    media:late.length ? Math.round(sum(late, x => diffDays(x.data, x.vencAnterior)) / late.length) : 0,
+    ultPag:pays.map(x => x.data).sort().pop() || '', ultCob:p.loans.map(l => l.ultCobranca || '').sort().pop() || ''};
+}
+
+function projection() {
+  const t = today(), ev = [];
+  S.devedores.forEach(d => {
+    let rest = d.saldo, due = d.venc, n = 0;
+    if (rest <= 0.005) return;
+    const p = d.parcela > 0 ? d.parcela : rest;
+    while (rest > 0.005 && n++ < 600) { const a = Math.min(p, rest); ev.push({date:due, amt:a}); rest -= a; due = nextDue(d, due); }
+  });
+  const now = new Date(), meses = [];
+  for (let i = 0; i < 6; i++) { const m = new Date(now.getFullYear(), now.getMonth() + i, 1); meses.push({key:`${m.getFullYear()}-${pad(m.getMonth()+1)}`, label:m.toLocaleDateString('pt-BR', {month:'short', year:'2-digit'}).replace('.', ''), total:0}); }
+  let atrasado = 0, depois = 0, prox30 = 0;
+  const lim = iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 30));
+  ev.forEach(e => {
+    if (e.date >= t && e.date <= lim) prox30 += e.amt;
+    if (e.date < t) { atrasado += e.amt; return; }
+    const m = meses.find(m => m.key === e.date.slice(0, 7));
+    if (m) m.total += e.amt; else depois += e.amt;
+  });
+  return {atrasado, meses, depois, prox30};
+}
+
+/* ---------- mensagem / whatsapp ---------- */
+function waNumber(p) { let n = String(p).replace(/\D/g, ''); if (n.length <= 11) n = '55' + n; return n; }
+const fillTpl = (tpl, v) => tpl.replace(/\{(\w+)\}/g, (m, k) => k in v ? v[k] : m);
+function buildMsgLoans(nome, loans) {
+  const c = S.cfg, late = loans.some(l => status(l) === 'atrasado');
+  const vars = {nome, primeiro_nome:nome.trim().split(/\s+/)[0], valor:brl(sum(loans, parcelaDe)), saldo:brl(sum(loans, l => l.saldo)),
+    vencimento:brDate(minVenc(loans)), dias_atraso:Math.max(0, ...loans.map(l => diffDays(today(), l.venc))), pix:c.pix, pixTipo:c.pixTipo, recebedor:c.recebedor};
+  let t = fillTpl(late ? c.msgAtraso : c.msgVenc, vars);
+  if (loans.length > 1) {
+    const det = 'Detalhes:\n' + loans.map(l => `• ${loanLabel(l)}: ${brl(parcelaDe(l))} (venc. ${brDate(l.venc)})`).join('\n');
+    const i = t.indexOf('\n\n');
+    t = i >= 0 ? t.slice(0, i) + '\n' + det + t.slice(i) : t + '\n\n' + det;
+  }
+  return t;
+}
+const cobraveis = p => { const due = p.loans.filter(isDue); return due.length ? due : p.loans.filter(l => status(l) !== 'quitado'); };
+let msgCtx = null;
+function openMsg(nome, whats, loans) {
+  msgCtx = {whats, loans};
+  $('#m-t').textContent = 'Cobrar ' + nome;
+  $('#m-warn').innerHTML = S.cfg.pix ? '' : '<div class="warn">Você ainda não cadastrou sua chave Pix em Configurações — ela não irá na mensagem.</div>';
+  $('#m-text').value = buildMsgLoans(nome, loans);
+  updWa();
+  $('#dMsg').showModal();
+}
+function updWa() { $('#m-wa').href = `https://wa.me/${waNumber(msgCtx.whats)}?text=${encodeURIComponent($('#m-text').value)}`; }
+
+/* ---------- render ---------- */
+function render() {
+  $$('.view').forEach(v => v.classList.toggle('on', v.id === 'v-' + ui.view));
+  $$('#nav button').forEach(b => b.classList.toggle('on', b.dataset.v === ui.view));
+  if (ui.view === 'dash') renderDash();
+  if (ui.view === 'dev') renderDev();
+  if (ui.view === 'hist') renderHist();
+  if ($('#dPerson').open) renderFicha();
+}
+
+function banners() {
+  let h = '';
+  const c = S.cfg;
+  if (c.conflito) h += `<div class="warn bad"><b>A planilha tem dados mais novos</b>, enviados de outro aparelho. Pausei o envio para não apagar nada.<br><button class="b sm" data-act="restore">Baixar da planilha</button><button class="b sm" data-act="forcesync">Manter este aparelho</button></div>`;
+  if (S.devedores.length || S.pagamentos.length) {
+    const dias = c.ultimoBackupMs ? Math.floor((Date.now() - c.ultimoBackupMs) / 864e5) : null;
+    if (dias === null || dias >= 7)
+      h += `<div class="warn">💾 <b>${dias === null ? 'Você ainda não fez backup dos seus dados.' : `Último backup há ${dias} dias.`}</b><br>${c.sheetsUrl ? '<button class="b sm" data-act="sync">Sincronizar com o Google Sheets</button>' : ''}<button class="b sm" data-act="export">Baixar backup</button></div>`;
+  }
+  return h;
+}
+
+function renderDash() {
+  const emp = sum(S.devedores, d => d.emprestado || 0);
+  const rec = sum(S.pagamentos, p => p.valor);
+  const falta = sum(S.devedores, d => d.saldo);
+  const atr = S.devedores.filter(d => status(d) === 'atrasado');
+  const atrV = sum(atr, parcelaDe);
+  const pj = projection();
+  const lucro = rec + falta - emp;
+  $('#banner').innerHTML = banners();
+  $('#cards').innerHTML = [
+    ['Total emprestado', brl(emp), `${S.devedores.length} empréstimo(s)`, 'var(--blue)'],
+    ['Já recebido', brl(rec), `${S.pagamentos.length} pagamento(s)`, 'var(--green)'],
+    ['Falta receber', brl(falta), `Lucro previsto: ${brl(lucro)}`, 'var(--amber)'],
+    ['Em atraso', brl(atrV), `${atr.length} parcela(s) · próx. 30 dias: ${brl(pj.prox30)}`, 'var(--red)'],
+  ].map(([l, v, s, c]) => `<div class="card stat" style="border-top:3px solid ${c}"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join('');
+
+  requestAnimationFrame(() => {
+    barChart($('#ch1'), [{l:'Emprestado', v:emp, c:'--blue'}, {l:'Recebido', v:rec, c:'--green'}, {l:'Falta receber', v:falta, c:'--amber'}]);
+    barChart($('#ch2'), [{l:'Atrasado', v:pj.atrasado, c:'--red'}, ...pj.meses.map(m => ({l:m.label, v:m.total, c:'--blue'}))]);
+  });
+
+  let cum = 0;
+  const rows = [['Atrasado', pj.atrasado], ...pj.meses.map(m => [m.label, m.total]), ['Depois', pj.depois]];
+  $('#proj').innerHTML = `<table><tr><th>Período</th><th class="r">Previsto</th><th class="r">Acumulado</th></tr>` +
+    rows.map(([l, v]) => { cum += v; return `<tr><td>${l}</td><td class="r">${brl(v)}</td><td class="r">${brl(cum)}</td></tr>`; }).join('') + `</table>
+    <div class="hint">Projeção considera a parcela repetida a cada prazo até zerar o saldo de cada empréstimo.</div>`;
+
+  const dueP = [...pessoas().values()].map(p => ({p, due:p.loans.filter(isDue)})).filter(x => x.due.length)
+    .sort((a, b) => minVenc(a.due).localeCompare(minVenc(b.due)));
+  $('#dueBtn').innerHTML = dueP.length ? `<button class="b wa sm" data-act="queue">📲 Cobrar todos (${dueP.length})</button>` : '';
+  $('#due').innerHTML = dueP.length ? dueP.map(({p, due}) => {
+    const late = due.some(l => status(l) === 'atrasado'), dias = Math.max(...due.map(l => diffDays(today(), l.venc)));
+    const bd = late ? `<span class="badge bd-atrasado">Atrasado ${dias}d</span>` : '<span class="badge bd-hoje">Vence hoje</span>';
+    return `<div class="row"><div class="who"><b data-act="ficha" data-key="${p.key}">${esc(p.nome)}</b><span>${bd} · ${due.length > 1 ? due.length + ' empréstimos' : 'venc. ' + brDate(due[0].venc)}</span></div>
+    <div class="amt"><b>${brl(sum(due, parcelaDe))}</b></div>
+    <div class="acts"><button class="b wa sm" data-act="msgp" data-key="${p.key}">Cobrar</button>${due.length === 1 ? `<button class="b sm" data-act="pay" data-id="${due[0].id}">Pagou</button>` : `<button class="b sm" data-act="ficha" data-key="${p.key}">Ficha</button>`}</div></div>`;
+  }).join('') : '<div class="empty">Ninguém para cobrar hoje 🎉</div>';
+}
+
+function barChart(cv, items) {
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = 260;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext('2d'); g.scale(dpr, dpr); g.clearRect(0, 0, W, H);
+  const css = getComputedStyle(document.documentElement), col = n => css.getPropertyValue(n).trim();
+  const max = Math.max(...items.map(i => i.v), 1);
+  const step = Math.pow(10, Math.floor(Math.log10(max))), top = Math.ceil(max / step) * step;
+  const L = 52, B = 26, T = 16, ch = H - B - T, cw = W - L - 8;
+  const fmt = v => v >= 1e6 ? (v / 1e6).toFixed(1).replace('.', ',') + 'M' : v >= 1e3 ? (v / 1e3).toFixed(v % 1e3 ? 1 : 0).replace('.', ',') + 'k' : String(Math.round(v));
+  g.font = '12px system-ui,sans-serif'; g.textBaseline = 'middle';
+  for (let i = 0; i <= 4; i++) {
+    const y = T + ch - ch * i / 4;
+    g.strokeStyle = col('--bd'); g.beginPath(); g.moveTo(L, y); g.lineTo(W - 8, y); g.stroke();
+    g.fillStyle = col('--mut'); g.textAlign = 'right'; g.fillText(fmt(top * i / 4), L - 6, y);
+  }
+  const slot = cw / items.length, bw = Math.min(64, slot * .6);
+  items.forEach((it, i) => {
+    const h = ch * it.v / top, x = L + slot * i + (slot - bw) / 2, y = T + ch - h;
+    g.fillStyle = col(it.c); g.beginPath(); g.roundRect ? g.roundRect(x, y, bw, Math.max(h, 1), [5, 5, 0, 0]) : g.rect(x, y, bw, Math.max(h, 1)); g.fill();
+    g.textAlign = 'center'; g.fillStyle = col('--tx');
+    if (it.v > 0) g.fillText(fmt(it.v), x + bw / 2, Math.max(y - 9, 8));
+    g.fillStyle = col('--mut'); g.fillText(it.l, x + bw / 2, H - B / 2 + 2);
+  });
+}
+
+function renderDev() {
+  const ps = pessoas();
+  const cnt = {todos:S.devedores.length};
+  S.devedores.forEach(d => { const s = status(d); cnt[s] = (cnt[s] || 0) + 1; });
+  const defs = [['todos', 'Todos'], ['atrasado', 'Atrasados'], ['hoje', 'Vencem hoje'], ['emdia', 'Em dia'], ['quitado', 'Quitados']];
+  $('#chips').innerHTML = defs.map(([k, l]) => `<span class="chip ${ui.filter === k ? 'on' : ''}" data-f="${k}">${l} (${cnt[k] || 0})</span>`).join('');
+  const q = ui.q.toLowerCase(), qd = q.replace(/\D/g, '');
+  const ord = {atrasado:0, hoje:1, emdia:2, quitado:3};
+  const list = S.devedores.filter(d => (ui.filter === 'todos' || status(d) === ui.filter) &&
+      (!q || d.nome.toLowerCase().includes(q) || (qd && d.whats.replace(/\D/g, '').includes(qd))))
+    .sort((a, b) => (ord[status(a)] - ord[status(b)]) || a.venc.localeCompare(b.venc));
+  $('#devlist').innerHTML = list.length ? list.map(d => {
+    const st = status(d), k = pkey(d.whats), multi = (ps.get(k)?.loans.length || 0) > 1;
+    const sub = [esc(d.whats), FREQ[d.freq], parcelaTxt(d), multi ? 'empréstimo ' + esc(loanLabel(d)) : '', esc(d.obs || ''), d.ultCobranca ? 'cobrado em ' + brDate(d.ultCobranca) : ''].filter(Boolean).join(' · ');
+    return `<div class="row"><div class="who"><b data-act="ficha" data-key="${k}">${esc(d.nome)}</b><span>${sub}</span></div>
+      <div>${badge(d)}<div class="hint" style="margin:2px 0 0">${st === 'quitado' ? 'pago ' + brl(pagoDe(d.id)) : 'vence ' + brDate(d.venc)}</div></div>
+      <div class="amt"><b>${brl(d.saldo)}</b><span>parcela ${brl(d.parcela)}</span></div>
+      <div class="acts">
+        ${st === 'quitado' ? '' : `<button class="b wa sm" data-act="msg" data-id="${d.id}">Cobrar</button><button class="b pri sm" data-act="pay" data-id="${d.id}">Pagamento</button>`}
+        <button class="b sm" data-act="ficha" data-key="${k}">Ficha</button>
+      </div></div>`;
+  }).join('') : `<div class="empty">${S.devedores.length ? 'Nada encontrado.' : 'Nenhum devedor cadastrado ainda. Clique em “+ Novo devedor”.<br><br>Já usa em outro aparelho? Configure o Google Sheets em <b>Configurações</b> e seus dados serão baixados.'}</div>`;
+}
+
+function renderHist() {
+  const sel = $('#hfilter'), cur = sel.value || 'all';
+  const ids = [...new Set(S.pagamentos.map(p => p.devId))];
+  sel.innerHTML = '<option value="all">Todos os devedores</option>' + ids.map(i => `<option value="${i}">${esc(S.pagamentos.find(p => p.devId === i).nome)} ${esc(S.pagamentos.find(p => p.devId === i).rot || '')}</option>`).join('');
+  sel.value = ids.includes(cur) ? cur : 'all';
+  const list = S.pagamentos.filter(p => sel.value === 'all' || p.devId === sel.value).sort((a, b) => b.data.localeCompare(a.data) || b.id.localeCompare(a.id));
+  $('#htotal').textContent = 'Total: ' + brl(sum(list, p => p.valor));
+  $('#histlist').innerHTML = list.length ? `<table><tr><th>Data</th><th>Devedor</th><th class="r">Valor</th><th>Obs.</th><th></th></tr>` +
+    list.map(p => `<tr><td>${brDate(p.data)}</td><td>${esc(p.nome)}${p.rot ? `<div class="hint" style="margin:0">${esc(p.rot)}</div>` : ''}</td><td class="r"><b>${brl(p.valor)}</b></td><td>${esc(p.obs || '')}${p.avancou ? ' <span class="hint">(parcela acertada)</span>' : ''}</td>
+    <td class="r"><button class="b sm dng" data-act="undo" data-id="${p.id}">Desfazer</button></td></tr>`).join('') + '</table>'
+    : '<div class="empty">Nenhum pagamento registrado ainda.</div>';
+}
+
+function renderCfg() {
+  const c = S.cfg;
+  ['pixTipo', 'pix', 'recebedor', 'msgVenc', 'msgAtraso', 'sheetsUrl', 'token'].forEach(k => $('#c-' + k).value = c[k] || '');
+  $('#c-auto').checked = !!c.auto;
+  $('#bkInfo').textContent = c.ultimoBackupMs ? 'Último backup: ' + new Date(c.ultimoBackupMs).toLocaleString('pt-BR') : 'Nenhum backup feito ainda.';
+}
+
+/* ---------- ficha da pessoa ---------- */
+let fichaKey = '';
+function openFicha(key) { fichaKey = key; renderFicha(); if ($('#dPerson').open === false && pessoas().has(key)) $('#dPerson').showModal(); }
+function loanCard(l) {
+  const st = status(l), pt = parcelaTxt(l);
+  const rn = (l.reneg || []).map(r => `<div class="hint">🔁 ${brDate(r.data)}: saldo ${brl(r.de.saldo)} → ${brl(r.para.saldo)}, parcela ${brl(r.de.parcela)} → ${brl(r.para.parcela)}, venc. ${brDate(r.para.venc)}${r.obs ? ' — ' + esc(r.obs) : ''}</div>`).join('');
+  return `<div class="loan"><div class="top"><b>${esc(loanLabel(l))}</b>${badge(l)}</div>
+    <div class="hint" style="font-size:13px">Saldo <b>${brl(l.saldo)}</b> · parcela ${brl(l.parcela)} · ${FREQ[l.freq]}${pt ? ' · ' + pt : ''}${st !== 'quitado' ? ` · vence ${brDate(l.venc)} · termina ~${brDate(fimPrevisto(l))}` : ''}${l.obs ? ' · ' + esc(l.obs) : ''}</div>${rn}
+    <div class="acts" style="margin-top:8px">${st === 'quitado' ? '' : `<button class="b wa sm" data-act="msg" data-id="${l.id}">Cobrar</button><button class="b pri sm" data-act="pay" data-id="${l.id}">Pagamento</button><button class="b sm" data-act="reneg" data-id="${l.id}">Renegociar</button>`}
+    <button class="b sm" data-act="edit" data-id="${l.id}">Editar</button><button class="b sm dng" data-act="del" data-id="${l.id}">Excluir</button></div></div>`;
+}
+function renderFicha() {
+  const p = pessoas().get(fichaKey);
+  if (!p) { if ($('#dPerson').open) $('#dPerson').close(); return; }
+  const st = personStats(p);
+  const loans = [...p.loans].sort((a, b) => (status(a) === 'quitado') - (status(b) === 'quitado') || a.venc.localeCompare(b.venc));
+  const pays = S.pagamentos.filter(x => p.loans.some(l => l.id === x.devId)).sort((a, b) => b.data.localeCompare(a.data));
+  $('#personBody').innerHTML = `<h2>${esc(p.nome)}</h2><div class="hint" style="margin:-6px 0 0">${esc(p.whats)}</div>
+    <div class="sum"><div>Emprestado<b>${brl(st.emp)}</b></div><div>Já pagou<b>${brl(st.pago)}</b></div><div>Saldo<b>${brl(st.saldo)}</b></div>
+    <div>Atrasos<b>${st.atrasos}${st.media ? ' · média ' + st.media + 'd' : ''}</b></div><div>Último pagamento<b>${st.ultPag ? brDate(st.ultPag) : '—'}</b></div><div>Última cobrança<b>${st.ultCob ? brDate(st.ultCob) : '—'}</b></div></div>
+    <h3>Empréstimos (${loans.length})</h3>${loans.map(loanCard).join('')}
+    <h3 style="margin-top:14px">Pagamentos</h3>
+    ${pays.length ? '<table>' + pays.map(x => `<tr><td>${brDate(x.data)}</td><td>${esc(x.rot || '')}</td><td class="r"><b>${brl(x.valor)}</b></td></tr>`).join('') + '</table>' : '<div class="hint">Nenhum pagamento ainda.</div>'}
+    <div class="foot"><button class="b" data-close>Fechar</button><button class="b" data-act="newloan" data-key="${p.key}">+ Novo empréstimo</button>${p.loans.some(l => status(l) !== 'quitado') ? `<button class="b wa" data-act="msgp" data-key="${p.key}">Cobrar</button>` : ''}</div>`;
+}
+
+/* ---------- empréstimos ---------- */
+let parcTouched = false;
+function openDev(id, pre) {
+  const d = S.devedores.find(x => x.id === id), o = d || pre || {};
+  $('#dDevT').textContent = d ? 'Editar empréstimo' : (pre ? 'Novo empréstimo' : 'Novo devedor');
+  $('#f-id').value = d ? d.id : '';
+  $('#f-nome').value = o.nome || ''; $('#f-whats').value = o.whats || '';
+  $('#f-emp').value = numStr(d?.emprestado); $('#f-saldo').value = numStr(d?.saldo); $('#f-parc').value = numStr(d?.parcela);
+  $('#f-np').value = d?.parcelasTotal || '';
+  $('#f-freq').value = d?.freq || 'mensal'; $('#f-venc').value = d?.venc || today(); $('#f-obs').value = d?.obs || '';
+  parcTouched = !!d;
+  const multi = d && (pessoas().get(pkey(d.whats))?.loans.length || 0) > 1;
+  $('#f-allw').style.display = multi ? 'flex' : 'none'; $('#f-all').checked = true;
+  $('#names').innerHTML = [...pessoas().values()].map(p => `<option value="${esc(p.nome)}">`).join('');
+  $('#dDev').showModal();
+}
+$('#f-nome').addEventListener('input', () => {
+  if ($('#f-id').value || $('#f-whats').value) return;
+  const n = $('#f-nome').value.trim().toLowerCase(), p = [...pessoas().values()].find(p => p.nome.toLowerCase() === n);
+  if (p) $('#f-whats').value = p.whats;
+});
+$('#f-parc').addEventListener('input', () => parcTouched = true);
+['#f-np', '#f-saldo'].forEach(s => $(s).addEventListener('input', () => {
+  const n = parseInt($('#f-np').value), v = num($('#f-saldo').value);
+  if (!parcTouched && n > 0 && v > 0) $('#f-parc').value = numStr(v / n);
+}));
+$('#fDev').addEventListener('submit', e => {
+  e.preventDefault();
+  const saldo = num($('#f-saldo').value), whats = $('#f-whats').value.trim();
+  if (whats.replace(/\D/g, '').length < 10) return alert('Informe o WhatsApp com DDD.');
+  if (saldo <= 0) return alert('Informe o valor que a pessoa deve.');
+  const id = $('#f-id').value, old = S.devedores.find(x => x.id === id), oldKey = old ? pkey(old.whats) : null;
+  const venc = $('#f-venc').value, np = parseInt($('#f-np').value) || 0;
+  const d = {id:id || uid(), nome:$('#f-nome').value.trim(), whats, emprestado:num($('#f-emp').value) || saldo, saldo:r2(saldo),
+    parcela:num($('#f-parc').value) || (np > 0 ? r2(saldo / np) : saldo), parcelasTotal:np, pagas:old?.pagas || 0, reneg:old?.reneg || [],
+    freq:$('#f-freq').value, venc, diaMes:parse(venc).getDate(), obs:$('#f-obs').value.trim(),
+    criado:old?.criado || today(), ultCobranca:old?.ultCobranca || ''};
+  if (old) {
+    Object.assign(old, d);
+    if ($('#f-all').checked && $('#f-allw').style.display !== 'none') S.devedores.forEach(x => { if (pkey(x.whats) === oldKey) { x.nome = d.nome; x.whats = d.whats; } });
+  } else S.devedores.push(d);
+  S.pagamentos.forEach(p => { const l = S.devedores.find(x => x.id === p.devId); if (l) p.nome = l.nome; });
+  $('#dDev').close();
+  if (fichaKey && $('#dPerson').open) fichaKey = pkey(d.whats);
+  save();
+});
+
+/* ---------- pagamentos ---------- */
+function openPay(id) {
+  const d = S.devedores.find(x => x.id === id); if (!d) return;
+  $('#p-id').value = id;
+  $('#payInfo').innerHTML = `<b>${esc(d.nome)}</b> · saldo ${brl(d.saldo)} · parcela ${brl(parcelaDe(d))}${parcelaTxt(d) ? ' (' + parcelaTxt(d) + ')' : ''} · vence ${brDate(d.venc)}`;
+  $('#p-valor').value = numStr(parcelaDe(d)); $('#p-data').value = today(); $('#p-obs').value = '';
+  $('#p-adv').checked = true; $('#p-next').textContent = brDate(nextDue(d));
+  $('#dPay').showModal();
+}
+$('#p-valor').addEventListener('input', () => {
+  const d = S.devedores.find(x => x.id === $('#p-id').value); if (d) $('#p-adv').checked = num($('#p-valor').value) >= parcelaDe(d) - 0.005;
+});
+$('#p-all').addEventListener('click', () => {
+  const d = S.devedores.find(x => x.id === $('#p-id').value); $('#p-valor').value = numStr(d.saldo); $('#p-adv').checked = false;
+});
+$('#fPay').addEventListener('submit', e => {
+  e.preventDefault();
+  const d = S.devedores.find(x => x.id === $('#p-id').value); if (!d) return;
+  const v = r2(Math.min(num($('#p-valor').value), d.saldo));
+  if (v <= 0) return alert('Informe um valor válido.');
+  const adv = $('#p-adv').checked && d.saldo - v > 0.005;
+  S.pagamentos.push({id:uid(), devId:d.id, nome:d.nome, rot:loanLabel(d), valor:v, data:$('#p-data').value, obs:$('#p-obs').value.trim(), avancou:adv, vencAnterior:d.venc});
+  d.saldo = r2(d.saldo - v);
+  if (adv) { d.venc = nextDue(d); d.pagas = (d.pagas || 0) + 1; }
+  $('#dPay').close(); save();
+});
+
+/* ---------- renegociar ---------- */
+function openReneg(id) {
+  const d = S.devedores.find(x => x.id === id); if (!d) return;
+  $('#r-id').value = id;
+  $('#rInfo').innerHTML = `<b>${esc(d.nome)}</b> · ${esc(loanLabel(d))} · saldo ${brl(d.saldo)}`;
+  $('#r-venc').value = d.venc; $('#r-freq').value = d.freq; $('#r-parc').value = numStr(d.parcela); $('#r-saldo').value = numStr(d.saldo);
+  $('#r-np').value = d.parcelasTotal ? Math.max(1, d.parcelasTotal - (d.pagas || 0)) : ''; $('#r-obs').value = '';
+  $('#dReneg').showModal();
+}
+$('#fReneg').addEventListener('submit', e => {
+  e.preventDefault();
+  const d = S.devedores.find(x => x.id === $('#r-id').value); if (!d) return;
+  const saldo = num($('#r-saldo').value), venc = $('#r-venc').value, np = parseInt($('#r-np').value) || 0;
+  if (saldo <= 0) return alert('Informe o saldo devedor.');
+  const parcela = num($('#r-parc').value) || saldo;
+  d.reneg = d.reneg || [];
+  d.reneg.push({data:today(), de:{venc:d.venc, freq:d.freq, parcela:d.parcela, saldo:d.saldo}, para:{venc, freq:$('#r-freq').value, parcela, saldo:r2(saldo)}, obs:$('#r-obs').value.trim()});
+  Object.assign(d, {venc, freq:$('#r-freq').value, parcela, saldo:r2(saldo), diaMes:parse(venc).getDate()});
+  if (np > 0) d.parcelasTotal = (d.pagas || 0) + np;
+  $('#dReneg').close(); save();
+});
+
+/* ---------- fila de cobrança ---------- */
+let Q = {keys:[], i:0};
+const sentToday = k => { const p = pessoas().get(k); if (!p) return true; const due = p.loans.filter(isDue); return due.every(l => l.ultCobranca === today()); };
+function openQueue() {
+  Q.keys = [...pessoas().values()].map(p => ({p, due:p.loans.filter(isDue)})).filter(x => x.due.length)
+    .sort((a, b) => minVenc(a.due).localeCompare(minVenc(b.due))).map(x => x.p.key);
+  if (!Q.keys.length) return alert('Ninguém para cobrar hoje 🎉');
+  const f = Q.keys.findIndex(k => !sentToday(k)); Q.i = f < 0 ? 0 : f;
+  renderQueue(); $('#dQueue').showModal();
+}
+function renderQueue() {
+  const ps = pessoas(), n = Q.keys.length, done = Q.keys.filter(sentToday).length;
+  const k = Q.keys[Q.i], p = ps.get(k), due = p ? p.loans.filter(isDue) : [];
+  let cur = '';
+  if (done === n) cur = '<div class="empty">Todos cobrados hoje 🎉</div>';
+  else if (p && due.length) cur = `<div class="top" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><div><b style="font-size:16px">${esc(p.nome)}</b><div class="hint" style="margin:0">${due.length > 1 ? due.length + ' empréstimos' : 'venc. ' + brDate(due[0].venc)} · ${brl(sum(due, parcelaDe))}${sentToday(k) ? ' · <b>já cobrado hoje</b>' : ''}</div></div>${badge(due[0])}</div>
+    <label>Mensagem <small>(pode editar)</small></label><textarea id="q-text" rows="8"></textarea>
+    <div class="foot"><button class="b" data-act="qprev">‹ Anterior</button><button class="b" data-act="qskip">Pular ›</button><a class="b wa" id="q-wa" data-act="qsent" target="_blank" rel="noopener">Abrir no WhatsApp</a></div>`;
+  $('#queueBody').innerHTML = `<h2>Fila de cobrança</h2><div class="hint" style="margin:0">${done} de ${n} cobrados hoje · ${Q.i + 1}º da fila</div><div class="pbar"><i style="width:${done / n * 100}%"></i></div>${cur}
+    <div class="qlist">${Q.keys.map((x, i) => `<div class="${i === Q.i ? 'cur' : ''}" data-act="qgo" data-i="${i}"><span>${sentToday(x) ? '✅' : '⬜'}</span><span>${esc(ps.get(x)?.nome || '')}</span></div>`).join('')}</div>
+    <div class="foot"><button class="b" data-close>Fechar</button></div>`;
+  if ($('#q-text')) { $('#q-text').value = buildMsgLoans(p.nome, due); updQ(); }
+}
+function updQ() { const p = pessoas().get(Q.keys[Q.i]); if (p && $('#q-wa')) $('#q-wa').href = `https://wa.me/${waNumber(p.whats)}?text=${encodeURIComponent($('#q-text').value)}`; }
+function qMove(step) { Q.i = (Q.i + step + Q.keys.length) % Q.keys.length; renderQueue(); }
+function qSent() {
+  const p = pessoas().get(Q.keys[Q.i]); if (!p) return;
+  p.loans.filter(isDue).forEach(l => l.ultCobranca = today());
+  persist(); scheduleSync();
+  setTimeout(() => {
+    for (let s = 1; s <= Q.keys.length; s++) { const j = (Q.i + s) % Q.keys.length; if (!sentToday(Q.keys[j])) { Q.i = j; break; } }
+    renderQueue(); render();
+  }, 400);
+}
+
+/* ---------- sincronização ---------- */
+let syncTimer;
+const setSync = t => $('#sync').textContent = t;
+function resetSyncLabel() {
+  const c = S.cfg;
+  setSync(!c.sheetsUrl ? 'Salvo neste navegador' : c.conflito ? 'Sheets: conflito' : c.pendente ? 'Sheets: pendente' : c.ultimoSync ? 'Sheets: sincronizado ' + c.ultimoSync : 'Sheets: não sincronizado');
+}
+function scheduleSync() {
+  const c = S.cfg;
+  if (!c.sheetsUrl) return resetSyncLabel();
+  c.pendente = true; persist();
+  if (!c.auto || c.conflito) return resetSyncLabel();
+  setSync('Sheets: aguardando…');
+  clearTimeout(syncTimer); syncTimer = setTimeout(() => sync(false), 1500);
+}
+function sheetPayload(savedAt) {
+  const dev = [['ID', 'Nome', 'WhatsApp', 'Valor emprestado', 'Saldo devedor', 'Parcela', 'Parcelas', 'Prazo', 'Próximo vencimento', 'Término previsto', 'Status', 'Total pago', 'Observação']]
+    .concat(S.devedores.map(d => [d.id, d.nome, d.whats, d.emprestado, d.saldo, d.parcela, parcelaTxt(d), FREQ[d.freq], brDate(d.venc), brDate(fimPrevisto(d)), BADGE[status(d)], r2(pagoDe(d.id)), d.obs || '']));
+  const pag = [['ID', 'Data', 'Devedor', 'Empréstimo', 'Valor', 'Observação']]
+    .concat([...S.pagamentos].sort((a, b) => a.data.localeCompare(b.data)).map(p => [p.id, brDate(p.data), p.nome, p.rot || '', p.valor, p.obs || '']));
+  const cfg = {...S.cfg}; DEVICE_KEYS.forEach(k => delete cfg[k]);
+  return {token:S.cfg.token, devedores:dev, pagamentos:pag, backup:JSON.stringify({savedAt, devedores:S.devedores, pagamentos:S.pagamentos, cfg})};
+}
+async function fetchRemote(url) {
+  const j = await (await fetch(url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(S.cfg.token))).json();
+  if (!j.ok) throw new Error(j.erro || 'erro no script');
+  return JSON.parse(j.backup);
+}
+async function remoteRev(url) { try { return (await fetchRemote(url)).savedAt || 0; } catch (e) { return 0; } }
+function applyBackup(b) {
+  S = {devedores:b.devedores || [], pagamentos:b.pagamentos || [],
+    cfg:{...S.cfg, ...(b.cfg || {}), revSheets:b.savedAt || 0, conflito:false, pendente:false, ultimoSync:new Date().toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})}};
+  persist(); renderCfg(); resetSyncLabel(); render();
+}
+async function sync(manual, force) {
+  const url = S.cfg.sheetsUrl.trim();
+  if (!url) { if (manual) alert('Cole a URL do Web App em Configurações primeiro.'); return; }
+  if (!navigator.onLine) { setSync('Sheets: pendente (offline)'); if (manual) alert('Sem internet agora. Será enviado quando voltar.'); return; }
+  setSync('Sheets: verificando…');
+  if (!force) {
+    const rr = await remoteRev(url);
+    if (rr > (S.cfg.revSheets || 0)) {
+      S.cfg.conflito = true; S.cfg.pendente = true; persist(); resetSyncLabel(); render();
+      if (manual && confirm('A planilha tem dados mais novos, enviados de outro aparelho.\n\nOK = baixar os dados da planilha para este aparelho.\nCancelar = não fazer nada agora.')) return restore(true);
+      return;
+    }
+  }
+  S.cfg.conflito = false;
+  const savedAt = Date.now();
+  setSync('Sheets: enviando…');
+  const init = {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(sheetPayload(savedAt))};
+  const done = (txt, ok) => {
+    S.cfg.pendente = false; S.cfg.revSheets = savedAt; if (ok) S.cfg.ultimoBackupMs = Date.now();
+    S.cfg.ultimoSync = new Date().toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+    persist(); resetSyncLabel(); render(); if (manual) alert(txt);
+  };
+  try {
+    const j = await (await fetch(url, init)).json();
+    if (!j.ok) throw new Error(j.erro || 'erro no script');
+    done('Planilha atualizada ✔', true);
+  } catch (e) {
+    if (String(e.message).includes('token') || String(e.message).includes('script')) { setSync('Sheets: erro'); if (manual) alert('Erro: ' + e.message); return; }
+    try { await fetch(url, {...init, mode:'no-cors'}); done('Enviado. (O navegador não deixou confirmar a resposta — confira a planilha.)', false); }
+    catch (e2) { setSync('Sheets: erro ao enviar'); if (manual) alert('Não foi possível enviar: ' + e2.message); }
+  }
+}
+async function restore(skipConfirm) {
+  const url = S.cfg.sheetsUrl.trim();
+  if (!url) return alert('Cole a URL do Web App primeiro.');
+  if (!skipConfirm && !confirm('Isto vai SUBSTITUIR os dados deste aparelho pelos da planilha. Continuar?')) return;
+  try { applyBackup(await fetchRemote(url)); alert('Dados restaurados da planilha ✔'); }
+  catch (e) { alert('Não foi possível restaurar: ' + e.message); }
+}
+async function pullIfNewer() {
+  const url = S.cfg.sheetsUrl.trim();
+  if (!url || !navigator.onLine || S.cfg.conflito || $$('dialog[open]').length) return;
+  let b; try { b = await fetchRemote(url); } catch (e) { return; }
+  if (!((b.savedAt || 0) > (S.cfg.revSheets || 0))) return;
+  const vazio = !S.devedores.length && !S.pagamentos.length;
+  if (!S.cfg.pendente && ((S.cfg.revSheets || 0) > 0 || vazio)) { applyBackup(b); setSync('Sheets: atualizado do outro aparelho'); }
+  else { S.cfg.conflito = true; persist(); resetSyncLabel(); render(); }
+}
+window.addEventListener('online', () => { if (S.cfg.pendente && S.cfg.auto && S.cfg.sheetsUrl) sync(false); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) pullIfNewer(); });
+
+function exportJson() {
+  S.cfg.ultimoBackupMs = Date.now(); persist();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 2)], {type:'application/json'}));
+  a.download = `cobrancas-backup-${today()}.json`; a.click();
+  renderCfg(); render();
+}
+
+/* ---------- eventos ---------- */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act],[data-v],[data-f],[data-close]'); if (!t) return;
+  if (t.dataset.close !== undefined) return t.closest('dialog').close();
+  if (t.dataset.v) { ui.view = t.dataset.v; if (ui.view === 'cfg') renderCfg(); return render(); }
+  if (t.dataset.f) { ui.filter = t.dataset.f; return render(); }
+  const id = t.dataset.id, key = t.dataset.key;
+  switch (t.dataset.act) {
+    case 'new': return openDev();
+    case 'newloan': { const p = pessoas().get(key); return openDev(null, {nome:p.nome, whats:p.whats}); }
+    case 'edit': return openDev(id);
+    case 'pay': return openPay(id);
+    case 'reneg': return openReneg(id);
+    case 'ficha': return openFicha(key);
+    case 'msg': { const d = S.devedores.find(x => x.id === id); return openMsg(d.nome, d.whats, [d]); }
+    case 'msgp': { const p = pessoas().get(key); return openMsg(p.nome, p.whats, cobraveis(p)); }
+    case 'queue': return openQueue();
+    case 'qprev': return qMove(-1);
+    case 'qskip': return qMove(1);
+    case 'qgo': Q.i = +t.dataset.i; return renderQueue();
+    case 'qsent': return qSent();
+    case 'del': {
+      const d = S.devedores.find(x => x.id === id);
+      if (confirm(`Excluir o empréstimo de ${d.nome} (${loanLabel(d)})? Os pagamentos dele também serão apagados do histórico.`)) {
+        S.devedores = S.devedores.filter(x => x.id !== id); S.pagamentos = S.pagamentos.filter(p => p.devId !== id); save();
+      } return;
+    }
+    case 'undo': {
+      const p = S.pagamentos.find(x => x.id === id);
+      if (!confirm(`Desfazer o pagamento de ${brl(p.valor)} de ${p.nome}?`)) return;
+      const d = S.devedores.find(x => x.id === p.devId);
+      if (d) { d.saldo = r2(d.saldo + p.valor); if (p.avancou) { d.venc = p.vencAnterior; d.pagas = Math.max(0, (d.pagas || 0) - 1); } }
+      S.pagamentos = S.pagamentos.filter(x => x.id !== id); save(); return;
+    }
+    case 'sync': return sync(true);
+    case 'forcesync': return sync(true, true);
+    case 'restore': return restore();
+    case 'copycode': $('#gscode').select(); navigator.clipboard?.writeText($('#gscode').value); t.textContent = 'Copiado ✔'; return;
+    case 'copylink': {
+      if (!S.cfg.sheetsUrl) return alert('Configure primeiro a URL do Google Sheets.');
+      if (!/^https?:/.test(location.protocol)) return alert('Este link só funciona depois que a página estiver hospedada na internet (ex.: GitHub Pages). Abra a versão hospedada e gere o link por lá.');
+      navigator.clipboard?.writeText(location.origin + location.pathname + '#cfg=' + btoa(JSON.stringify({u:S.cfg.sheetsUrl, t:S.cfg.token})));
+      return alert('Link copiado. Abra no celular para configurar tudo de uma vez.\nCuidado: quem tiver esse link acessa sua planilha — não compartilhe.');
+    }
+    case 'resetmsg': S.cfg.msgVenc = DEF_MSG_VENC; S.cfg.msgAtraso = DEF_MSG_ATRASO; persist(); renderCfg(); return;
+    case 'export': return exportJson();
+    case 'import': return $('#file').click();
+  }
+});
+$('#file').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const j = JSON.parse(await f.text());
+    if (!Array.isArray(j.devedores) || !Array.isArray(j.pagamentos)) throw new Error('arquivo inválido');
+    if (!confirm('Isto vai SUBSTITUIR os dados atuais. Continuar?')) return;
+    S = {devedores:j.devedores, pagamentos:j.pagamentos, cfg:{...defaults().cfg, ...(j.cfg || {})}};
+    save(); renderCfg();
+  } catch (err) { alert('Não foi possível importar: ' + err.message); }
+  e.target.value = '';
+});
+$('#q').addEventListener('input', e => { ui.q = e.target.value; renderDev(); });
+$('#hfilter').addEventListener('change', renderHist);
+$('#m-text').addEventListener('input', updWa);
+document.addEventListener('input', e => { if (e.target.id === 'q-text') updQ(); });
+$('#m-wa').addEventListener('click', () => { if (msgCtx) { msgCtx.loans.forEach(l => l.ultCobranca = today()); persist(); scheduleSync(); render(); } });
+$('#m-copy').addEventListener('click', e => { navigator.clipboard?.writeText($('#m-text').value); e.target.textContent = 'Copiado ✔'; setTimeout(() => e.target.textContent = 'Copiar', 1500); });
+$$('#v-cfg [id^="c-"]').forEach(el => el.addEventListener('input', () => {
+  const k = el.id.slice(2);
+  S.cfg[k] = el.type === 'checkbox' ? el.checked : el.value; persist(); resetSyncLabel();
+}));
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => ui.view === 'dash' && renderDash(), 150); });
+
+/* link de acesso rápido: #cfg=... */
+(function () {
+  const m = location.hash.match(/^#cfg=(.+)$/); if (!m) return;
+  try {
+    const c = JSON.parse(atob(m[1]));
+    if (c.u) {
+      S.cfg.sheetsUrl = c.u; S.cfg.token = c.t || ''; S.cfg.auto = true; persist();
+      history.replaceState(null, '', location.pathname + location.search);
+      setTimeout(() => { if (!S.devedores.length && !S.pagamentos.length) restore(true); else alert('Google Sheets configurado neste aparelho.'); }, 300);
+    }
+  } catch (e) {}
+})();
+if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+resetSyncLabel(); render(); pullIfNewer();
+</script>
+</body>
+</html>
