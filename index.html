@@ -879,8 +879,9 @@ async function pullIfNewer() {
   const url = S.cfg.sheetsUrl.trim();
   if (!url || !navigator.onLine || S.cfg.conflito || $$('dialog[open]').length) return;
   let b; try { b = await fetchRemote(url); } catch (e) { return; }
-  if (!((b.savedAt || 0) > (S.cfg.revSheets || 0))) return;
   const vazio = !S.devedores.length && !S.pagamentos.length;
+  const temDados = (b.devedores || []).length || (b.pagamentos || []).length;
+  if (!((b.savedAt || 0) > (S.cfg.revSheets || 0)) && !(vazio && temDados)) return;
   if (!S.cfg.pendente && ((S.cfg.revSheets || 0) > 0 || vazio)) { applyBackup(b); setSync('Sheets: atualizado do outro aparelho'); }
   else { S.cfg.conflito = true; persist(); resetSyncLabel(); render(); }
 }
